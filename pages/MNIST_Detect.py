@@ -4,9 +4,7 @@ import numpy as np
 import cv2
 
 def chu_so_viet_tay():
-    st.title("Chữ số viết tay")
     st.error("Chỉ để test thử")
-    st.sidebar.title("Nhận dạng chữ số viết tay")
 
     st.success("Nhập ảnh chữ số viết tay")
     uploaded_file = st.file_uploader("Chọn ảnh", type=['png', 'jpg', 'jpeg'])
@@ -26,6 +24,3 @@ def chu_so_viet_tay():
                 pass
     else:
         st.info("Vui lòng chọn ảnh")
-
-if __name__ == "__main__":
-    chu_so_viet_tay()
