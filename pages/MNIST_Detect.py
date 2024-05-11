@@ -14,8 +14,6 @@ def chu_so_viet_tay():
         image = Image.open(uploaded_file)
         st.image(image, caption='Ảnh gốc', use_column_width=True)
         st.info("Ảnh gốc")
-        st.image(image, caption='Ảnh gốc', use_column_width=True)
-        st.info("Ảnh xử lí")
         # chỉ dùng để test chớ chưa xử lí gì cả
         if st.button("Xử lí"):
             image = np.array(image)
