@@ -1,26 +1,67 @@
 import streamlit as st
-from PIL import Image
+import tensorflow as tf
+from tensorflow import keras
+
 import numpy as np
+import random
 import cv2
 
-def chu_so_viet_tay():
-    st.error("Chỉ để test thử")
+def tao_anh_ngau_nhien():
+    image = np.zeros((10*28, 10*28), np.uint8)
+    data = np.zeros((100,28,28,1), np.uint8)
 
-    st.success("Nhập ảnh chữ số viết tay")
-    uploaded_file = st.file_uploader("Chọn ảnh", type=['png', 'jpg', 'jpeg'])
-    if uploaded_file is not None:
-        image = Image.open(uploaded_file)
-        st.image(image, caption='Ảnh gốc', use_column_width=True)
-        st.info("Ảnh gốc")
-        # chỉ dùng để test chớ chưa xử lí gì cả
-        if st.button("Xử lí"):
-            image = np.array(image)
-            gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-            ret, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-            st.image(thresh, caption='Ảnh xử lí', use_column_width=True)
-            st.info("Ảnh xử lí")
-            st.info("Kết quả")
-            if st.button("Nhận dạng"):
-                pass
+    for i in range(0, 100):
+        n = random.randint(0, 9999)
+        sample = st.session_state.X_test[n]
+        data[i] = st.session_state.X_test[n]
+        x = i // 10
+        y = i % 10
+        image[x*28:(x+1)*28,y*28:(y+1)*28] = sample[:,:,0]    
+    return image, data
+def chu_so_viet_tay():
+    if 'is_load' not in st.session_state:
+        # load model
+        model_architecture = './model/nhan_dang_chu_so_viet_tay/digit_config.json'
+        model_weights = './model/nhan_dang_chu_so_viet_tay/digit_weight.h5'
+        model = keras.models.model_from_json(open(model_architecture).read())
+        model.load_weights(model_weights)       
+
+        OPTIMIZER = tf.keras.optimizers.Adam()
+        model.compile(loss="categorical_crossentropy", optimizer=OPTIMIZER,
+                    metrics=["accuracy"])
+        st.session_state.model = model
+
+        # load data
+        (_,_), (X_test, y_test) = keras.datasets.mnist.load_data()
+        X_test = X_test.reshape((10000, 28, 28, 1))
+        st.session_state.X_test = X_test
+
+        st.session_state.is_load = True
+        print('Lần đầu load model và data')
     else:
-        st.info("Vui lòng chọn ảnh")
+        print('Đã load model và data rồi')
+
+    if st.button('Tạo ảnh'):
+        image, data = tao_anh_ngau_nhien()
+        st.session_state.image = image
+        st.session_state.data = data
+
+    if 'image' in st.session_state:
+        image = st.session_state.image
+        st.image(image)
+
+        if st.button('Nhận dạng'):
+            data = st.session_state.data
+            data = data/255.0
+            data = data.astype('float32')
+            ket_qua = st.session_state.model.predict(data)
+            dem = 0
+            s = ''
+            for x in ket_qua:
+                s = s + '%d ' % (np.argmax(x))
+                dem = dem + 1
+                
+                if (dem % 10 == 0) and (dem <= 100):
+                        
+                    st.markdown(f'<div style="font-size: 20px;letter-spacing: 8px;">{s}</div>', unsafe_allow_html=True)
+                    s = ""
