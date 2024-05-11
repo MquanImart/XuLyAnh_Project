@@ -4,10 +4,8 @@ import numpy as np
 import cv2
 
 def xu_li_anh():
-    st.title("Xử lí ảnh")
     st.error("Chỉ để test thử")
-    st.sidebar.title("Xử lí ảnh")
-    
+
     st.success("Nhập ảnh")
     uploaded_file = st.file_uploader("Chọn ảnh", type=['png', 'jpg', 'jpeg'])
     if uploaded_file is not None:
@@ -28,6 +26,3 @@ def xu_li_anh():
                 pass
     else:
         st.info("Vui lòng chọn ảnh")
-
-if __name__ == "__main__":
-    xu_li_anh()

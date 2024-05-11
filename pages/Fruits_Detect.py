@@ -4,9 +4,7 @@ import numpy as np
 import cv2
 
 def nhan_dang_trai_cay():
-    st.title("Nhận dạng trái cây")
     st.error("Chỉ để test thử")
-    st.sidebar.title("Nhận dạng trái cây")
     
     st.success("Nhập ảnh trái cây")
     uploaded_file = st.file_uploader("Chọn ảnh", type=['png', 'jpg', 'jpeg'])
@@ -28,6 +26,3 @@ def nhan_dang_trai_cay():
                 pass
     else:
         st.info("Vui lòng chọn ảnh")
-
-if __name__ == "__main__":
-    nhan_dang_trai_cay()
