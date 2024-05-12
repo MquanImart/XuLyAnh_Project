@@ -4,6 +4,8 @@ import numpy as np
 import cv2
 from xu_ly_anh import Negative, Logarit, Power, PiecewiseLinear, Histogram, LocalHist, HistStat, MyFilter2D, MySmooth, OnSharpen, Gradient
 from xu_ly_anh import Spectrum, HighpassFilter, DrawNotchRejectFilter, RemoveMoire
+from xu_ly_anh import CreateMotionNoise, DenoiseMotion
+from xu_ly_anh import ConnectedComponent, CountRice
 
 def xu_li_anh():
     with st.sidebar:
@@ -16,6 +18,10 @@ def xu_li_anh():
         xu_li_anh_c3()
     if selected_process == "Lọc trong miền tần số":
         xu_li_anh_c4()
+    if selected_process == "Khôi phục ảnh":
+        xu_li_anh_c5()
+    if selected_process == "Xử lý ảnh hình thái":
+        xu_li_anh_c9()
 
 def xu_li_anh_c3():
     st.header("Biến đổi độ sáng và lọc trong không gian")
@@ -94,6 +100,61 @@ def xu_li_anh_c4():
                 imgout = DrawNotchRejectFilter()
             elif operation == "Remove Moire":
                 imgout = RemoveMoire(imgin)
+            st.info("Ảnh sau khi xử lí")
+            st.image(imgout, channels="GRAY", use_column_width=True, caption="Output Image", width=100)
+            st.write("Kích thước ảnh: ", imgout.shape)
+    else:
+        st.warning("Vui lòng tải ảnh lên")
+
+def xu_li_anh_c5():
+    st.header("Khôi phục ảnh")
+    imgin = None
+    imgout = None
+    file_uploaded = st.file_uploader("Tải ảnh lên", type=['jpg', 'jpeg', 'png', 'bmp', 'tif'])
+    if file_uploaded is not None:
+        file_bytes = np.asarray(bytearray(file_uploaded.read()), dtype=np.uint8)
+        imgin = cv2.imdecode(file_bytes, cv2.IMREAD_GRAYSCALE)
+        st.image(imgin, channels="GRAY", use_column_width=True, caption="Input Image", width=100)
+        st.write("Kích thước ảnh: ", imgin.shape)
+    operation = st.selectbox("Các tùy chọn", ["", "CreateMotionNoise", "DenoiseMotion", "DenoisestMotion"])
+    if imgin is not None:
+        transfer = st.button("Chuyển đổi")
+        if transfer:
+            if operation == "CreateMotionNoise":
+                imgout = CreateMotionNoise(imgin)
+            elif operation == "DenoiseMotion":
+                imgout = DenoiseMotion(imgin)
+            elif operation == "DenoisestMotion":
+                temp = cv2.medianBlur(imgin, 7)
+                imgout = DenoiseMotion(temp)
+            st.info("Ảnh sau khi xử lí")
+            st.image(imgout, channels="GRAY", use_column_width=True, caption="Output Image", width=100)
+            st.write("Kích thước ảnh: ", imgout.shape)
+    else:
+        st.warning("Vui lòng tải ảnh lên")
+
+def xu_li_anh_c9():
+    st.header("Xử lý ảnh hình thái")
+    imgin = None
+    imgout = None
+    file_uploaded = st.file_uploader("Tải ảnh lên", type=['jpg', 'jpeg', 'png', 'bmp', 'tif'])
+    if file_uploaded is not None:
+        file_bytes = np.asarray(bytearray(file_uploaded.read()), dtype=np.uint8)
+        imgin = cv2.imdecode(file_bytes, cv2.IMREAD_GRAYSCALE)
+        st.image(imgin, channels="GRAY", use_column_width=True, caption="Input Image", width=100)
+        st.write("Kích thước ảnh: ", imgin.shape)
+    operation = st.selectbox("Các tùy chọn", ["", "Connected Component", "Count Rice"])
+    if imgin is not None:
+        transfer = st.button("Chuyển đổi")
+        if transfer:
+            if operation == "Connected Component":
+                text = ""
+                imgout, text = ConnectedComponent(imgin, text)
+                st.info(text)
+            elif operation == "Count Rice":
+                text = ""
+                imgout, text = CountRice(imgin, text)
+                st.info(text)
             st.info("Ảnh sau khi xử lí")
             st.image(imgout, channels="GRAY", use_column_width=True, caption="Output Image", width=100)
             st.write("Kích thước ảnh: ", imgout.shape)

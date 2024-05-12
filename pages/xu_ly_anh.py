@@ -435,3 +435,164 @@ def RemoveMoire(imgin):
     imgout = np.clip(imgout, 0, 255).astype(np.uint8)
 
     return imgout
+
+# CHuong 5
+def CreateMotionfilter(M, N):
+    H = np.zeros((M,N), np.complex128)
+    a = 0.1
+    b = 0.1
+    T = 1
+    for u in range(0, M):
+        for v in range(0, N):
+            phi = np.pi*((u-M//2)*a + (v-N//2)*b)
+            if np.abs(phi) < 1.0e-6:
+                RE = T*np.cos(phi)
+                IM = -T*np.sin(phi)
+            else:
+                RE = T*np.sin(phi)/phi*np.cos(phi)
+                IM = -T*np.sin(phi)/phi*np.sin(phi)
+            H.real[u,v] = RE
+            H.imag[u,v] = IM
+    return H
+
+def CreateMotionNoise(imgin):
+    M, N = imgin.shape
+    f = imgin.astype(np.float64)
+    # Buoc 1: DFT
+    F = np.fft.fft2(f)
+    # Buoc 2: Shift vao the center of the image
+    F = np.fft.fftshift(F)
+
+    # Buoc 3: Tao bo loc H
+    H = CreateMotionfilter(M, N)
+
+    # Buoc 4: Nhan F voi H
+    G = F*H
+
+    # Buoc 5: Shift return
+    G = np.fft.ifftshift(G)
+
+    # Buoc 6: IDFT
+    g = np.fft.ifft2(G)
+    g = g.real
+    g = np.clip(g, 0, L-1)
+    g = g.astype(np.uint8)
+    return g
+
+def CreateInverseMotionfilter(M, N):
+    H = np.zeros((M,N), np.complex128)
+    a = 0.1
+    b = 0.1
+    T = 1
+    phi_prev = 0
+    for u in range(0, M):
+        for v in range(0, N):
+            phi = np.pi*((u-M//2)*a + (v-N//2)*b)
+            if np.abs(phi) < 1.0e-6:
+                RE = np.cos(phi)/T
+                IM = np.sin(phi)/T
+            else:
+                if np.abs(np.sin(phi)) < 1.0e-6:
+                    phi = phi_prev
+                RE = phi/(T*np.sin(phi))*np.cos(phi)
+                IM = phi/(T*np.sin(phi))*np.sin(phi)
+            H.real[u,v] = RE
+            H.imag[u,v] = IM
+            phi_prev = phi
+    return H
+
+def DenoiseMotion(imgin):
+    M, N = imgin.shape
+    f = imgin.astype(np.float64)
+    # Buoc 1: DFT
+    F = np.fft.fft2(f)
+    # Buoc 2: Shift vao the center of the image
+    F = np.fft.fftshift(F)
+
+    # Buoc 3: Tao bo loc H
+    H = CreateInverseMotionfilter(M, N)
+
+    # Buoc 4: Nhan F voi H
+    G = F*H
+
+    # Buoc 5: Shift return
+    G = np.fft.ifftshift(G)
+
+    # Buoc 6: IDFT
+    g = np.fft.ifft2(G)
+    g = g.real
+    g = np.clip(g, 0, L-1)
+    g = g.astype(np.uint8)
+    return g
+
+# CHuong 9
+def ConnectedComponent(imgin, text):
+    ret, temp = cv2.threshold(imgin, 200, L-1, cv2.THRESH_BINARY)
+    temp = cv2.medianBlur(temp, 7)
+    dem, label = cv2.connectedComponents(temp)
+    print('Co %d thanh phan lien thong' % (dem-1))
+    text = text + 'Có %d thành phần liên thông' % (dem-1)
+    a = np.zeros(dem, np.int64)
+    M, N = label.shape
+    color = 150
+    for x in range(0, M):
+        for y in range(0, N):
+            r = label[x, y]
+            a[r] += 1
+            if r > 0:
+                label[x, y] += color
+    for r in range(1, dem):
+        print('%4d %10d' % (r, a[r]))
+    return label.astype(np.uint8), text
+
+# trả về số hạt gạo
+def CountRice1(imgin):
+    w = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (81, 81))
+    temp = cv2.morphologyEx(imgin, cv2.MORPH_TOPHAT, w)
+    ret, temp = cv2.threshold(temp, 100, L-1, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    temp = cv2.medianBlur(temp, 3)
+    dem, label = cv2.connectedComponents(temp)
+    return dem
+
+
+def CountRice(imgin, text):
+    w = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (81, 81))
+    temp = cv2.morphologyEx(imgin, cv2.MORPH_TOPHAT, w)
+    ret, temp = cv2.threshold(temp, 100, L-1, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    temp = cv2.medianBlur(temp, 3)
+    dem, label = cv2.connectedComponents(temp)
+    print('Co %d hat gao' % dem)
+    text = text + 'Có %d hạt gạo' % dem
+    print(text)
+    a = np.zeros(dem, np.int64)
+    M, N = label.shape
+    color = 150
+    for x in range(0, M):
+        for y in range(0, N):
+            r = label[x, y]
+            a[r] += 1
+            if r > 0:
+                label[x, y] += color
+    for r in range(0, dem):
+        print('%4d %10d' % (r, a[r]))
+
+    max_val = a[1]
+    rmax = 1
+    for r in range(2, dem):
+        if a[r] > max_val:
+            max_val = a[r]
+            rmax = r
+
+    xoa = np.array([], np.int64)
+    for r in range(1, dem):
+        if a[r] < 0.5 * max_val:
+            xoa = np.append(xoa, r)
+
+    for x in range(0, M):
+        for y in range(0, N):
+            r = label[x, y]
+            if r > 0:
+                r -= color
+                if r in xoa:
+                    label[x, y] = 0
+    return label.astype(np.uint8), text
