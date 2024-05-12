@@ -23,7 +23,7 @@ def style_transfer():
     )
 
 
-    model= "./pages/saved_models/" + style_name + ".pth"
+    model= "./pages/style_transfer/saved_models/" + style_name + ".pth"
     input_image = "./Image/content-images/" + img
     output_image = "./Image/output-images/" + style_name + "-" + img
 
