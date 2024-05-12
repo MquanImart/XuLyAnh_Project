@@ -4,7 +4,7 @@ import numpy as np
 import cv2
 from xu_ly_anh import Negative, NegativeColor, Logarit, Power, PiecewiseLinear, Histogram, LocalHist, HistStat, MyFilter2D, MySmooth, MyMedianFilter
 
-def xu_li_anh_bright():
+def xu_li_anh_c3():
     st.header("Biến đổi độ sáng và lọc trong không gian")
     imgin = None
     imgout = None
@@ -67,4 +67,4 @@ def xu_li_anh():
     if selected_process == "":
         st.info("Vui lòng chọn một phương pháp xử lý ảnh trong menu bên trái")
     if selected_process == "Biến đổi độ sáng và lọc trong không gian":
-        xu_li_anh_bright()
+        xu_li_anh_c3()
