@@ -4,10 +4,9 @@ import numpy as np
 import cv2
 
 def nhan_dang_trai_cay():
-    st.title('Nhận diện trái cây')
 
     if "Net" not in st.session_state or st.session_state["Net"] is None:
-        st.session_state["Net"] = cv2.dnn.readNet("D:/Project/XuLyAnh_Project/model/trai_cay.onnx")
+        st.session_state["Net"] = cv2.dnn.readNet("./model/nhan_dang_trai_cay/trai_cay.onnx")
         # st.session_state["Net"] = cv2.dnn.readNet("../model/trai_cay.onnx")
         print('Load model lần đầu') 
 

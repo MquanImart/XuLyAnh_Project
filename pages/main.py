@@ -11,7 +11,7 @@ from Style_Transfer import style_transfer
 
 with st.sidebar:
     selected = option_menu("Menu", ['Trang Chủ', 'Nhận diện khuôn mặt', 'Nhận diện trái cây', 'Chữ số viết tay', 'Xử lý ảnh', 'Đổi phong cách'], 
-        icons=[], menu_icon="cast", default_index=1)
+        icons=[], menu_icon="cast", default_index=0)
 if selected == 'Trang Chủ':
     st.title("Đồ án Xử lí ảnh")
     Welcome()

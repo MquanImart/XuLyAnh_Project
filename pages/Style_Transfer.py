@@ -2,7 +2,7 @@
 # . venv/bin/activate
 # pip install streamlit
 # pip install torch torchvision
-# streamlit run main.py
+# streamlit run pages/main.py
 import streamlit as st
 from PIL import Image
 
@@ -12,20 +12,21 @@ import style
 
 def style_transfer():
     st.title('PyTorch Style Transfer')
-
-    img = st.selectbox(
-        'Select Image',
-        ('amber.jpg', 'cat.png')
-    )
-    style_name = st.selectbox(
-        'Select Style',
-        ('candy', 'mosaic', 'rain_princess', 'udnie')
-    )
-
+    
+    col1, col2 = st.columns([1, 2])  # Bạn có thể điều chỉnh tỷ lệ cột tùy ý
+    with col1:
+        style_name = st.selectbox(
+            'Select Style',
+            ('candy', 'mosaic', 'rain_princess', 'udnie')
+        )
+    with col2:
+        image_style_path = "./pages/style_transfer/images/style-images/" + style_name + ".jpg"
+        image_style = Image.open(image_style_path)
+        st.image(image_style, width=200)
 
     model= "./pages/style_transfer/saved_models/" + style_name + ".pth"
-    input_image = "./Image/content-images/" + img
-    output_image = "./Image/output-images/" + style_name + "-" + img
+    input_image = st.file_uploader("Upload an image", type=["bmp", "png", "jpg", "jpeg"])
+    output_image = "./Image/output-images/" + style_name + "-result.jpg"
 
     if input_image is not None:
         st.write('### Source image:')
